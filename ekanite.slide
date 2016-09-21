@@ -60,16 +60,20 @@ The current release is v1.1.0.
 * The design of a log search system
 
 * Ekanite architecture
-.image images/ekanite-arch.png _ 800
+.image images/ekanite-arch.png _ 600
+
+- The Ekanite engine receives log messages and routes to indexes.
+- The engine also receives queries, performs searches, and returns results.
 
 * Indexing by time
-.image images/ekanite-indexing.png _ 800
+.image images/ekanite-indexing.png _ 600
 
-- This diagram shows 3 particular hours, but time extends in both directions forever.
 - And index is a _logical_ concept, grouping physical bleve-based _shards_.
+- Indexing by time makes search quicker, and retention easier to enforce.
+- This diagram shows 3 particular hours, but time extends in both directions forever.
 
 * Why do we batch? Why do we shard?
-.image images/bleve-sharding.jpeg _ 1000
+.image images/bleve-sharding.jpeg _ 900
 
 * Demo
 
