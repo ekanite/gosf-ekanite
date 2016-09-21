@@ -81,11 +81,127 @@ The current release is v1.1.0.
 
 * Decoupling input and indexing
 
+- Input subsystem accepts a channel, to which it sends parsed log lines.
+
+    // input/collector.go
+
+    func (s *TCPCollector) handleConnection(conn net.Conn, c chan<- *Event) {
+    .
+    .
+            // Log line available?
+            if match {
+                stats.Add("tcpEventsRx", 1)
+                if s.parser.Parse(bytes.NewBufferString(log).Bytes()) {
+                    c <- &Event{
+                        Text:          string(s.parser.Raw),
+                        Parsed:        s.parser.Result,
+                        ReceptionTime: time.Now().UTC(),
+                        Sequence:      atomic.AddInt64(&sequenceNumber, 1),
+                        SourceIP:      conn.RemoteAddr().String(),
+                    }
+                }
+            }
+    .
+    .
+    }
+
 * Parallel indexing
 
-* Parallel searching
+    // engine.go
+
+    func (e *Engine) Index(events []*Event) error {
+    .
+    .
+
+        // De-multiplex the batch into sub-batches, one sub-batch for each Index.
+        subBatches := make(map[*Index][]Document, 0)
+    .
+    .
+        // Index each batch in parallel.
+        for index, subBatch := range subBatches {
+            wg.Add(1)
+            go func(i *Index, b []Document) {
+                defer wg.Done()
+                i.Index(b)
+            }(index, subBatch)
+        }
+        wg.Wait()
+    .
+    .
+    }
+
+* Parallel sharding
+
+    // index.go
+
+    // Index indexes the slice of documents in the index. It takes care of all shard routing.
+    func (i *Index) Index(documents []Document) error {
+        var wg sync.WaitGroup
+        shardBatches := make(map[*Shard][]Document, 0)
+        for _, d := range documents {
+            shard := i.Shard(d.ID())
+            shardBatches[shard] = append(shardBatches[shard], d)
+        }
+
+        // Index each batch in parallel.
+        for shard, batch := range shardBatches {
+            wg.Add(1)
+            go func(s *Shard, b []Document) {
+                defer wg.Done()
+                s.Index(b)
+            }(shard, batch)
+        }
+        wg.Wait()
+        return nil
+    }
+
+* Results returned over a channel
+
+    // engine.go
+
+    // Search performs a search.
+    func (e *Engine) Search(query string) (<-chan string, error) {
+        e.mu.RLock()
+        defer e.mu.RUnlock()
+
+        c := make(chan string, 1)
+        go func() {
+            // Sequentially search each index, starting with the earliest in time.
+            // This could be done in parallel but more sorting would be required.
+            for i := len(e.indexes) - 1; i >= 0; i-- {
+                e.Logger.Printf("searching index %s", e.indexes[i].Path())
+                ids, _ := e.indexes[i].Search(query)
+                for _, id := range ids {
+                    b, _ := e.indexes[i].Document(id)
+                    c <- string(b)
+                }
+            }
+            close(c)
+        }()
+        return c, nil
+    }
 
 * Sorting hits by time
+- Ekanite performs time-based sorting in the application.
+- Earlier versions of bleve did not support sorting on custom fields.
+- Newer versions now do.
+- Complex sort method on _DocIDs_.
+
+    // Search performs a search of the index using the given query. Returns IDs of documents
+    // which satisfy all queries. Returns Doc IDs in sorted order, ascending.
+    func (i *Index) Search(q string) (DocIDs, error) {
+        query := bleve.NewQueryStringQuery(q)
+        searchRequest := bleve.NewSearchRequest(query)
+        searchRequest.Size = maxSearchHitSize
+        searchResults, _ := i.Alias.Search(searchRequest)
+
+        docIDs := make(DocIDs, 0, len(searchResults.Hits))
+        for _, d := range searchResults.Hits {
+            docIDs = append(docIDs, DocID(d.ID))
+        }
+        sort.Sort(docIDs)
+        return docIDs, nil
+    }
 
 * Next steps
 
