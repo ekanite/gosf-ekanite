@@ -1,0 +1,103 @@
+Ekanite
+The syslog server with built-in search
+
+Philip O'Toole
+GoSF September 29th 2016
+
+http://www.philipotoole.com/
+@general_order24
+
+* About me
+
+- Director of Data Platform Engineering at Percolate.
+- Previously Director of Engineering and core developer with InfluxDB.
+- Led the backend team that built Loggly's 2nd generation indexing and search platform.
+- Big fan of Go, databases, and distributed systems.
+
+* About Ekanite
+
+The goal of Ekanite is to do a couple of things, and do them well -- accept log messages over the network, and make it easy to search the messages. What it lacks in feature, it makes up for in focus.
+
+You can find the source code at [[https://github.com/ekanite/ekanite]].
+
+The current release is v1.1.0.
+
+* Why?
+
+* Why another log search system?
+
+- Built very large scale log search systems in the past.
+- It can be quite involved - networking, indexing, search, retention, sharding, and performance.
+- Could it all be done in a single program?
+- Single binary Go program would make deployment really easy.
+- It would act as a detailed demonstration of building such a system.
+- New use case for bleve.
+
+* What is bleve?
+
+* bleve
+
+- bleve is an indexing and full-text search library for Go.
+- Supports text analysis and faceting.
+- Straightforward to use.
+
+    func main() {
+        // open a new index...ignoring all errors.
+        mapping := bleve.NewIndexMapping()
+        index, err := bleve.New("example.bleve", mapping)
+
+        // index some data
+        err = index.Index(identifier, your_data)
+
+        // search for some text
+        query := bleve.NewMatchQuery("text")
+        search := bleve.NewSearchRequest(query)
+        searchResults, err := index.Search(search)
+    }
+
+- bleve is to Go what Lucene is to Java.
+
+* Ekanite architecture
+.image images/ekanite-arch.png _ 800
+
+* Indexing by time
+.image images/ekanite-indexing.png _ 800
+
+- This diagram shows 3 particular hours, but time extends in both directions forever.
+
+* Why do we batch? Why do we shard?
+.image images/bleve-sharding.jpeg _ 1000
+
+* Demo
+
+* Go patterns in action
+
+* Decoupling input and indexing
+
+* Parallel indexing
+
+* Parallel searching
+
+* Sorting hits by time
+
+* Next steps
+
+Ekanite is software, and software is never finished.
+
+- Use storage engine other than BoltDB.
+- Better query language support
+- Proper dependency management.
+- A fully-featured CLI.
+
+* What Ekanite can do
+
+With it you've got an easy-to-deploy and maintain log search system.
+
+* References
+
+- [[http://www.philipotoole.com/designing-a-search-system-for-log-data-part-i]]
+- [[https://github.com/ekanite/ekanite]]
+- [[http://www.blevesearch.com]]
+- [[https://github.com/blevesearch/bleve]]
+- [[http://www.philipotoole.com/increasing-bleve-performance-sharding]]
+- [[https://github.com/otoolep/bleve-bench]]
