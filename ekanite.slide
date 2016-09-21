@@ -208,6 +208,7 @@ The current release is v1.1.0.
 Ekanite is software, and software is never finished.
 
 - Use storage engine other than BoltDB.
+- Performance improvements, both CPU and RAM.
 - Better query language support
 - Proper dependency management.
 - A fully-featured CLI.
