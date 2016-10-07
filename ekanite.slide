@@ -81,7 +81,7 @@ The current release is v1.1.1.
 
 * Decoupling input and indexing
 
-- Input subsystem accepts a channel, to which it sends parsed log lines.
+- Input subsystem accepts a buffered channel, to which it sends parsed log lines.
 
     // input/collector.go
 
@@ -202,6 +202,27 @@ The current release is v1.1.1.
         sort.Sort(docIDs)
         return docIDs, nil
     }
+
+* Retention enforcement is straightforward
+
+    // engine.go
+
+    // runRetentionEnforcement periodically runs retention enforcement.
+    func (e *Engine) runRetentionEnforcement() {
+        defer e.wg.Done()
+        for {
+            select {
+            case <-e.done:
+                return
+
+            case <-time.After(RetentionCheckInterval):
+                stats.Add("retentionEnforcementRun", 1)
+                e.enforceRetention()
+            }
+        }
+    }
+
+- Shards are deleted from disk and references removed from the engine.
 
 * Next steps
 
