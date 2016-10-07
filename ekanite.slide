@@ -225,4 +225,4 @@ With it you've got an easy-to-deploy and maintain log search system.
 - [[https://github.com/blevesearch/bleve]]
 - [[http://www.philipotoole.com/increasing-bleve-performance-sharding]]
 - [[https://github.com/otoolep/bleve-bench]]
-- [[https://github.com/otoolep/gosf-ekanite]]
+- [[https://github.com/ekanite/gosf-ekanite]]
