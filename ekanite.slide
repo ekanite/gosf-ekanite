@@ -30,7 +30,7 @@ The current release is v1.1.1.
 - It can be quite involved - networking, indexing, search, retention, sharding, and performance.
 - Could it all be done in a single program?
 - Single binary Go program would make deployment really easy.
-- It would act as a detailed demonstration of building such a system.
+- A detailed demonstration of building a search system.
 - New use case for bleve.
 
 * What is bleve?
@@ -42,7 +42,7 @@ The current release is v1.1.1.
 - Straightforward to use.
 
     func main() {
-        // open a new index...ignoring all errors.
+        // create a new index...ignoring all errors.
         mapping := bleve.NewIndexMapping()
         index, _ := bleve.New("example.bleve", mapping)
 
@@ -50,7 +50,7 @@ The current release is v1.1.1.
         index.Index(identifier, "hello, world!")
 
         // search for some text
-        query := bleve.NewMatchQuery("text")
+        query := bleve.NewMatchQuery("world")
         search := bleve.NewSearchRequest(query)
         searchResults, _ := index.Search(search)
     }
@@ -134,7 +134,7 @@ The current release is v1.1.1.
 
     // index.go
 
-    // Index indexes the slice of documents in the index. It takes care of all shard routing.
+    // Index indexes the slice of documents into the index. It takes care of all shard routing.
     func (i *Index) Index(documents []Document) error {
         var wg sync.WaitGroup
         shardBatches := make(map[*Shard][]Document, 0)
@@ -231,7 +231,7 @@ Ekanite is software, and software is never finished.
 - Use storage engine other than BoltDB.
 - Performance improvements, both CPU and RAM.
 - Better query language support
-- Proper dependency management.
+- Better dependency management.
 - A fully-featured CLI.
 
 * What Ekanite can do
