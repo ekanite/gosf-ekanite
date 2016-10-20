@@ -44,15 +44,15 @@ The current release is v1.1.1.
     func main() {
         // open a new index...ignoring all errors.
         mapping := bleve.NewIndexMapping()
-        index, err := bleve.New("example.bleve", mapping)
+        index, _ := bleve.New("example.bleve", mapping)
 
         // index some data
-        err = index.Index(identifier, "hello, world!")
+        index.Index(identifier, "hello, world!")
 
         // search for some text
         query := bleve.NewMatchQuery("text")
         search := bleve.NewSearchRequest(query)
-        searchResults, err := index.Search(search)
+        searchResults, _ := index.Search(search)
     }
 
 - bleve is to Go what Lucene is to Java.
